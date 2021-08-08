@@ -8,10 +8,11 @@ uses
 
 type
   PWMPDSP = ^TWMPDSP;
-  TWMPDSP = object
+  TWMPDSP = record
   private
     var fdata: TData;
     var finfo: TInfo;
+    function clip(const Value: Double): Double;
     function getData(): PData;
     function getInfo(): PInfo;
     function getSamples(const Sample: LongWord; const Channel: LongWord): Double;
@@ -34,79 +35,61 @@ begin
   Result := Addr(self.finfo);
 end;
 
-function TWMPDSP.getSamples(const Sample: LongWord; const Channel: LongWord): Double;
-var
-  x: Double;
+function TWMPDSP.clip(const Value: Double): Double;
 begin
-  if((Sample < self.Data^.Samples) and (Channel < self.Data^.Channels)) then begin
-    try
-      case (self.Data^.Bits div 8) of
-        1: begin
-          x := PShortInt(self.Data^.Data)[Channel + Sample * self.Data^.Channels] / $0000007F;
-        end;
-        2: begin
-          x := PSmallInt(self.Data^.Data)[Channel + Sample * self.Data^.Channels] / $00007FFF;
-        end;
-        4: begin
-          x := PLongInt(self.Data^.Data)[Channel + Sample * self.Data^.Channels] / $7FFFFFFF;
-        end;
-        else begin
-          x := 0.0;
-        end;
+  Result := Value;
+  if((Result < -1.0)) then begin
+    Result := -1.0;
+  end;
+  if((Result = 0.0)) then begin
+    Result := 0.0;
+  end;
+  if((Result > +1.0)) then begin
+    Result := +1.0;
+  end;
+end;
+
+function TWMPDSP.getSamples(const Sample: LongWord; const Channel: LongWord): Double;
+begin
+  try
+    case (self.Data.Bits div 8) of
+      1: begin
+        Result := clip(PShortInt(self.Data.Data)[Channel + Sample * self.Data.Channels] / $0000007F);
       end;
-    except
-      x := 0.0;
+      2: begin
+        Result := clip(PSmallInt(self.Data.Data)[Channel + Sample * self.Data.Channels] / $00007FFF);
+      end;
+      4: begin
+        Result := clip(PLongInt(self.Data.Data)[Channel + Sample * self.Data.Channels] / $7FFFFFFF);
+      end;
+      else begin
+        Result := clip(0.0);
+      end;
     end;
-  end                                                                   else begin
-    x := 0.0;
+  except
+    Result := clip(0.0);
   end;
-  if((x < -1.0)) then begin
-    x := -1.0;
-  end;
-  if((x = 0.0)) then begin
-    x := 0.0;
-  end;
-  if((x > +1.0)) then begin
-    x := +1.0;
-  end;
-  Result := x;
 end;
 
 procedure TWMPDSP.setSamples(const Sample: LongWord; const Channel: LongWord; const Value: Double);
-var
-  x: Double;
 begin
-  x := Value;
-  if((x < -1.0)) then begin
-    x := -1.0;
-  end;
-  if((x = 0.0)) then begin
-    x := 0.0;
-  end;
-  if((x > +1.0)) then begin
-    x := +1.0;
-  end;
-  if((Sample < self.Data^.Samples) and (Channel < self.Data^.Channels)) then begin
-    try
-      case (self.Data^.Bits div 8) of
-        1: begin
-          PShortInt(self.Data^.Data)[Channel + Sample * self.Data^.Channels] := Round(x * $0000007F);
-        end;
-        2: begin
-          PSmallInt(self.Data^.Data)[Channel + Sample * self.Data^.Channels] := Round(x * $00007FFF);
-        end;
-        4: begin
-          PLongInt(self.Data^.Data)[Channel + Sample * self.Data^.Channels] := Round(x * $7FFFFFFF);
-        end;
-        else begin
-          PSmallInt(self.Data^.Data)[Channel + Sample * self.Data^.Channels] := Round(x * $00000000);
-        end;
+  try
+    case (self.Data.Bits div 8) of
+      1: begin
+        PShortInt(self.Data.Data)[Channel + Sample * self.Data.Channels] := Round(clip(Value) * $0000007F);
       end;
-    except
-      PSmallInt(self.Data^.Data)[Channel + Sample * self.Data^.Channels] := Round(x * $00000000);
+      2: begin
+        PSmallInt(self.Data.Data)[Channel + Sample * self.Data.Channels] := Round(clip(Value) * $00007FFF);
+      end;
+      4: begin
+        PLongInt(self.Data.Data)[Channel + Sample * self.Data.Channels] := Round(clip(Value) * $7FFFFFFF);
+      end;
+      else begin
+        PSmallInt(self.Data.Data)[Channel + Sample * self.Data.Channels] := Round(clip(Value) * $00000000);
+      end;
     end;
-  end                                                                   else begin
-    PSmallInt(self.Data^.Data)[Channel + Sample * self.Data^.Channels] := Round(x * $00000000);
+  except
+    PSmallInt(self.Data.Data)[Channel + Sample * self.Data.Channels] := Round(clip(Value) * $00000000);
   end;
 end;
 

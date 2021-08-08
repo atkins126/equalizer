@@ -10,7 +10,7 @@ uses
 
 type
   PQMPEQU = ^TQMPEQU;
-  TQMPEQU = object
+  TQMPEQU = record
   private
     class var fdsp: TQMPDSP;
     class var feqz: array[0..4, 0..9] of TQMPBQF;
@@ -30,12 +30,12 @@ uses
 class function TQMPEQU.Plugin(): PPlugin; cdecl;
 begin
   Result := New(PPlugin);
-  Result^.Description := 'Quinnware Equalizer v3.51';
-  Result^.Version := $0000;
-  Result^.Init := @TQMPEQU.Init;
-  Result^.Quit := @TQMPEQU.Quit;
-  Result^.Modify := @TQMPEQU.Modify;
-  Result^.Update := @TQMPEQU.Update;
+  Result.Description := 'Quinnware Equalizer v3.51';
+  Result.Version := $0000;
+  Result.Init := TQMPEQU.Init;
+  Result.Quit := TQMPEQU.Quit;
+  Result.Modify := TQMPEQU.Modify;
+  Result.Update := TQMPEQU.Update;
 end;
 
 class function TQMPEQU.Init(const Flags: Integer): Integer; cdecl;
@@ -69,19 +69,19 @@ var
   i: Integer;
   x: Integer;
 begin
-  if((TQMPEQU.fdsp.Info^.Enabled)) then begin
-    TQMPEQU.fdsp.Data^.Data := Data^.Data;
-    TQMPEQU.fdsp.Data^.Bits := Data^.Bits;
-    TQMPEQU.fdsp.Data^.Rates := Data^.Rates;
-    TQMPEQU.fdsp.Data^.Samples := Data^.Samples;
-    TQMPEQU.fdsp.Data^.Channels := Data^.Channels;
-    for k := 0 to TQMPEQU.fdsp.Data^.Channels - 1 do begin
-      for i := 0 to Length(TQMPEQU.fdsp.Info^.Bands) - 1 do begin
-        TQMPEQU.feqz[k, i].Amp := (TQMPEQU.fdsp.Info^.Preamp + TQMPEQU.fdsp.Info^.Bands[i]) / 10;
+  if((TQMPEQU.fdsp.Info.Enabled)) then begin
+    TQMPEQU.fdsp.Data.Data := Data.Data;
+    TQMPEQU.fdsp.Data.Bits := Data.Bits;
+    TQMPEQU.fdsp.Data.Rates := Data.Rates;
+    TQMPEQU.fdsp.Data.Samples := Data.Samples;
+    TQMPEQU.fdsp.Data.Channels := Data.Channels;
+    for k := 0 to TQMPEQU.fdsp.Data.Channels - 1 do begin
+      for i := 0 to Length(TQMPEQU.fdsp.Info.Bands) - 1 do begin
+        TQMPEQU.feqz[k, i].Amp := (TQMPEQU.fdsp.Info.Preamp + TQMPEQU.fdsp.Info.Bands[i]) / 10;
         TQMPEQU.feqz[k, i].Freq := 35 * Power(2, 1.0 * i);
-        TQMPEQU.feqz[k, i].Rate := TQMPEQU.fdsp.Data^.Rates;
+        TQMPEQU.feqz[k, i].Rate := TQMPEQU.fdsp.Data.Rates;
         TQMPEQU.feqz[k, i].Width := 1.0;
-        for x := 0 to TQMPEQU.fdsp.Data^.Samples - 1 do begin
+        for x := 0 to TQMPEQU.fdsp.Data.Samples - 1 do begin
           TQMPEQU.fdsp.Samples[x, k] := TQMPEQU.feqz[k, i].Process(TQMPEQU.fdsp.Samples[x, k]);
         end;
       end;
@@ -92,9 +92,9 @@ end;
 
 class function TQMPEQU.Update(const Info: PInfo; const Flags: Integer): Integer; cdecl;
 begin
-  TQMPEQU.fdsp.Info^.Bands := Info^.Bands;
-  TQMPEQU.fdsp.Info^.Preamp := Info^.Preamp;
-  TQMPEQU.fdsp.Info^.Enabled := Info^.Enabled;
+  TQMPEQU.fdsp.Info.Bands := Info.Bands;
+  TQMPEQU.fdsp.Info.Preamp := Info.Preamp;
+  TQMPEQU.fdsp.Info.Enabled := Info.Enabled;
   Result := 1;
 end;
 

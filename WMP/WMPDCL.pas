@@ -5,7 +5,7 @@ interface
 
 type
   PData = ^TData;
-  TData = object
+  TData = record
     var Data: Pointer;
     var Length: LongWord;
     var Samples: LongWord;
@@ -18,7 +18,7 @@ type
 
 type
   PInfo = ^TInfo;
-  TInfo = object
+  TInfo = record
     var Size: LongWord;
     var Enabled: Boolean;
     var Preamp: Integer;
@@ -27,7 +27,7 @@ type
 
 type
   PPlugin = ^TPlugin;
-  TPlugin = object
+  TPlugin = record
     var Description: PAnsiChar;
     var Parent: LongWord;
     var Instance: LongWord;
@@ -40,7 +40,7 @@ type
 
 type
   PModule = ^TModule;
-  TModule = object
+  TModule = record
     var Version: LongWord;
     var Description: PAnsiChar;
     var Plugin: function(const Which: Integer): PPlugin; cdecl;

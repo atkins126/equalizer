@@ -3,9 +3,10 @@ library
 
 uses
   WMPDCL,
-  WMPMOD;
+  WMPMOD,
+  Interfaces;
 
-function winampDSPGetHeader2(): PModule;
+function winampDSPGetHeader2(): PModule; cdecl;
 begin
   Result := TWMPMOD.Module();
 end;
